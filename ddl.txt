@@ -1,0 +1,368 @@
+DROP TABLE t_clg_bairro CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_chamada CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_cidade CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_consulta CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_endereco CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_espe_pf CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_espe_pj CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_especialidade CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_especialista CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_especializar CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_estado CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_genero CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_paciente CASCADE CONSTRAINTS;
+
+DROP TABLE t_clg_prontuario CASCADE CONSTRAINTS;
+
+CREATE TABLE t_clg_bairro (
+    cd_bairro  NUMBER(3) NOT NULL,
+    cd_cidade  NUMBER(4) NOT NULL,
+    nm_bairro  VARCHAR2(50) NOT NULL
+);
+
+ALTER TABLE t_clg_bairro ADD CONSTRAINT pk_clg_bairro PRIMARY KEY ( cd_bairro );
+
+CREATE TABLE t_clg_chamada (
+    cd_chamada    NUMBER(4) NOT NULL,
+    cd_consulta   NUMBER(4) NOT NULL,
+    vl_duracao    NUMBER(4, 2) NOT NULL,
+    vl_avaliacao  NUMBER(1)
+);
+
+COMMENT ON COLUMN t_clg_chamada.vl_avaliacao IS
+    '1 a 5';
+
+CREATE UNIQUE INDEX idx_clg_chamada ON
+    t_clg_chamada (
+        cd_consulta
+    ASC );
+
+ALTER TABLE t_clg_chamada ADD CONSTRAINT pk_clg_chamada PRIMARY KEY ( cd_chamada );
+
+CREATE TABLE t_clg_cidade (
+    cd_cidade  NUMBER(4) NOT NULL,
+    cd_estado  NUMBER(2) NOT NULL,
+    nm_cidade  VARCHAR2(50) NOT NULL,
+    ds_sigla   CHAR(3)
+);
+
+ALTER TABLE t_clg_cidade ADD CONSTRAINT pk_clg_cidade PRIMARY KEY ( cd_cidade );
+
+CREATE TABLE t_clg_consulta (
+    cd_consulta      NUMBER(4) NOT NULL,
+    cd_especialista  NUMBER(5) NOT NULL,
+    cd_paciente      NUMBER(5) NOT NULL,
+    vl_confirmado    NUMBER(1) NOT NULL,
+    dt_consulta      DATE NOT NULL
+);
+
+COMMENT ON COLUMN t_clg_consulta.vl_confirmado IS
+    '0 NÃO 1 SIM';
+
+ALTER TABLE t_clg_consulta ADD CONSTRAINT pk_clg_consulta PRIMARY KEY ( cd_consulta );
+
+CREATE TABLE t_clg_endereco (
+    nr_cep          NUMBER(8) NOT NULL,
+    cd_bairro       NUMBER(3) NOT NULL,
+    nm_rua          VARCHAR2(100) NOT NULL,
+    nr_rua          NUMBER(5) NOT NULL,
+    ds_complemento  VARCHAR2(50)
+);
+
+ALTER TABLE t_clg_endereco ADD CONSTRAINT pk_clg_endereco PRIMARY KEY ( nr_cep );
+
+CREATE TABLE t_clg_espe_pf (
+    nr_cpf           NUMBER(9) NOT NULL,
+    cd_especialista  NUMBER(5) NOT NULL,
+    nr_cpf_digito    NUMBER(2) NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_clg_espe_pf ON
+    t_clg_espe_pf (
+        cd_especialista
+    ASC );
+
+--ALTER TABLE t_clg_espe_pf ADD CONSTRAINT pk_clg_espe_pf PRIMARY KEY ( nr_cpf );
+
+ALTER TABLE t_clg_espe_pf ADD CONSTRAINT un_clg_espe_cpf UNIQUE ( nr_cpf );
+
+CREATE TABLE t_clg_espe_pj (
+    nr_cnpj          NUMBER(12) NOT NULL,
+    cd_especialista  NUMBER(5) NOT NULL,
+    nr_cnpj_digito   NUMBER(2) NOT NULL,
+    ds_razao_social  VARCHAR2(200) NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_clg_espe_pj ON
+    t_clg_espe_pj (
+        cd_especialista
+    ASC );
+
+--ALTER TABLE t_clg_espe_pj ADD CONSTRAINT pk_clg_espe_pj PRIMARY KEY ( nr_cnpj );
+
+ALTER TABLE t_clg_espe_pj ADD CONSTRAINT un_clg_espe_cnpj UNIQUE ( nr_cnpj );
+
+ALTER TABLE t_clg_espe_pj ADD CONSTRAINT un_clg_espe_rs UNIQUE ( ds_razao_social );
+
+CREATE TABLE t_clg_especialidade (
+    cd_especialidade  NUMBER(3) NOT NULL,
+    nm_especialidade  VARCHAR2(50) NOT NULL
+);
+
+ALTER TABLE t_clg_especialidade ADD CONSTRAINT t_clg_especialidade_pk PRIMARY KEY ( cd_especialidade );
+
+CREATE TABLE t_clg_especialista (
+    cd_especialista  NUMBER(5) NOT NULL,
+    cd_genero        NUMBER(2) NOT NULL,
+    nr_cep           NUMBER(8) NOT NULL,
+    nm_especialista  VARCHAR2(50) NOT NULL,
+    ds_email         VARCHAR2(50) NOT NULL,
+    ds_senha         VARCHAR2(20) NOT NULL,
+    dt_nascimento    DATE NOT NULL,
+    nr_telefone_ddd  NUMBER(2),
+    nr_telefone      NUMBER(9),
+    nr_crp           VARCHAR2(15),
+    ds_crm           VARCHAR2(15),
+    nr_crn           VARCHAR2(15),
+    nr_cref          VARCHAR2(15),
+    ds_sobre         VARCHAR2(4000),
+    img_avatar_url   VARCHAR2(200),
+    vl_consulta      NUMBER(5, 2) NOT NULL,
+    ds_tipo_espe     CHAR(2) NOT NULL
+);
+
+ALTER TABLE t_clg_especialista
+    ADD CONSTRAINT pf_pj_lov CHECK ( ds_tipo_espe IN ( 'PJ', 'PF' ) );
+
+COMMENT ON COLUMN t_clg_especialista.ds_tipo_espe IS
+    'PF OU PJ';
+
+CREATE UNIQUE INDEX idx_clg_especialista ON
+    t_clg_especialista (
+        nr_cep
+    ASC );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT pk_clg_especialista PRIMARY KEY ( cd_especialista );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_crp UNIQUE ( nr_crp );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_crm UNIQUE ( ds_crm );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_crn UNIQUE ( nr_crn );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_cref UNIQUE ( nr_cref );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_avatar UNIQUE ( img_avatar_url );
+
+ALTER TABLE t_clg_especialista ADD CONSTRAINT un_clg_espe_email UNIQUE ( ds_email );
+
+CREATE TABLE t_clg_especializar (
+    cd_especialidade  NUMBER(3) NOT NULL,
+    cd_especialista   NUMBER(5) NOT NULL
+);
+
+CREATE TABLE t_clg_estado (
+    cd_estado  NUMBER(2) NOT NULL,
+    nm_estado  VARCHAR2(50) NOT NULL,
+    ds_sigla   CHAR(2) NOT NULL
+);
+
+ALTER TABLE t_clg_estado ADD CONSTRAINT pk_clg_estado PRIMARY KEY ( cd_estado );
+
+CREATE TABLE t_clg_genero (
+    cd_genero  NUMBER(2) NOT NULL,
+    nm_genero  CHAR(2) NOT NULL
+);
+
+COMMENT ON COLUMN t_clg_genero.nm_genero IS
+    'M, F ou NB';
+
+ALTER TABLE t_clg_genero
+    ADD CONSTRAINT ck_clg_genero CHECK ( nm_genero = 'M'
+                                         OR nm_genero = 'F'
+                                         OR nm_genero = 'NB' );
+
+ALTER TABLE t_clg_genero ADD CONSTRAINT pk_clg_genero PRIMARY KEY ( cd_genero );
+
+CREATE TABLE t_clg_paciente (
+    cd_paciente      NUMBER(5) NOT NULL,
+    cd_genero        NUMBER(2) NOT NULL,
+    nr_cep           NUMBER(8) NOT NULL,
+    nm_paciente      VARCHAR2(50) NOT NULL,
+    ds_email         VARCHAR2(50) NOT NULL,
+    ds_senha         VARCHAR2(20) NOT NULL,
+    dt_nascimento    DATE NOT NULL,
+    img_avatar_url   VARCHAR2(200),
+    nr_cpf           NUMBER(9) NOT NULL,
+    nr_cpf_digito    NUMBER(2) NOT NULL,
+    nr_telefone_ddd  NUMBER(2),
+    nr_telefone      NUMBER(9),
+    ds_estado_civil  VARCHAR2(15) NOT NULL,
+    ds_profissao     VARCHAR2(30) NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_clg_paciente ON
+    t_clg_paciente (
+        nr_cep
+    ASC );
+
+ALTER TABLE t_clg_paciente ADD CONSTRAINT pk_clg_paciente PRIMARY KEY ( cd_paciente );
+
+ALTER TABLE t_clg_paciente ADD CONSTRAINT un_clg_pac_email UNIQUE ( ds_email );
+
+ALTER TABLE t_clg_paciente ADD CONSTRAINT un_clg_pac_cpf UNIQUE ( nr_cpf );
+
+ALTER TABLE t_clg_paciente ADD CONSTRAINT un_clg_pac_avatar UNIQUE ( img_avatar_url );
+
+CREATE TABLE t_clg_prontuario (
+    cd_prontuario        NUMBER(4) NOT NULL,
+    cd_consulta          NUMBER(4) NOT NULL,
+    ds_identificacao     VARCHAR2(4000) NOT NULL,
+    ds_queixa_principal  VARCHAR2(1000),
+    ds_hda               VARCHAR2(4000) NOT NULL,
+    ds_hist_med          VARCHAR2(4000) NOT NULL,
+    ds_antece_fam        VARCHAR2(4000) NOT NULL,
+    ds_habitos           VARCHAR2(4000) NOT NULL
+);
+
+COMMENT ON COLUMN t_clg_prontuario.ds_hda IS
+    'HDA = História da doença atual';
+
+COMMENT ON COLUMN t_clg_prontuario.ds_hist_med IS
+    'História médica';
+
+COMMENT ON COLUMN t_clg_prontuario.ds_antece_fam IS
+    'Antecedentes familiares';
+
+CREATE UNIQUE INDEX idx_clg_prontuario ON
+    t_clg_prontuario (
+        cd_consulta
+    ASC );
+
+ALTER TABLE t_clg_prontuario ADD CONSTRAINT pk_clg_prontuario PRIMARY KEY ( cd_prontuario );
+
+ALTER TABLE t_clg_bairro
+    ADD CONSTRAINT fk_clg_bairro_cidade FOREIGN KEY ( cd_cidade )
+        REFERENCES t_clg_cidade ( cd_cidade );
+
+ALTER TABLE t_clg_chamada
+    ADD CONSTRAINT fk_clg_cha_cons FOREIGN KEY ( cd_consulta )
+        REFERENCES t_clg_consulta ( cd_consulta );
+
+ALTER TABLE t_clg_cidade
+    ADD CONSTRAINT fk_clg_cid_estado FOREIGN KEY ( cd_estado )
+        REFERENCES t_clg_estado ( cd_estado );
+
+ALTER TABLE t_clg_consulta
+    ADD CONSTRAINT fk_clg_cons_espe FOREIGN KEY ( cd_especialista )
+        REFERENCES t_clg_especialista ( cd_especialista );
+
+ALTER TABLE t_clg_consulta
+    ADD CONSTRAINT fk_clg_cons_pac FOREIGN KEY ( cd_paciente )
+        REFERENCES t_clg_paciente ( cd_paciente );
+
+ALTER TABLE t_clg_endereco
+    ADD CONSTRAINT fk_clg_end_bairro FOREIGN KEY ( cd_bairro )
+        REFERENCES t_clg_bairro ( cd_bairro );
+
+ALTER TABLE t_clg_especialista
+    ADD CONSTRAINT fk_clg_esp_endereco FOREIGN KEY ( nr_cep )
+        REFERENCES t_clg_endereco ( nr_cep );
+
+ALTER TABLE t_clg_especialista
+    ADD CONSTRAINT fk_clg_esp_genero FOREIGN KEY ( cd_genero )
+        REFERENCES t_clg_genero ( cd_genero );
+
+ALTER TABLE t_clg_espe_pf
+    ADD CONSTRAINT fk_clg_espe_pf_espe FOREIGN KEY ( cd_especialista )
+        REFERENCES t_clg_especialista ( cd_especialista );
+
+ALTER TABLE t_clg_espe_pj
+    ADD CONSTRAINT fk_clg_espe_pj_espe FOREIGN KEY ( cd_especialista )
+        REFERENCES t_clg_especialista ( cd_especialista );
+
+ALTER TABLE t_clg_especializar
+    ADD CONSTRAINT fk_clg_espez_esped FOREIGN KEY ( cd_especialidade )
+        REFERENCES t_clg_especialidade ( cd_especialidade );
+
+ALTER TABLE t_clg_especializar
+    ADD CONSTRAINT fk_clg_espez_espet FOREIGN KEY ( cd_especialista )
+        REFERENCES t_clg_especialista ( cd_especialista );
+
+ALTER TABLE t_clg_paciente
+    ADD CONSTRAINT fk_clg_pac_end FOREIGN KEY ( nr_cep )
+        REFERENCES t_clg_endereco ( nr_cep );
+
+ALTER TABLE t_clg_paciente
+    ADD CONSTRAINT fk_clg_pac_genero FOREIGN KEY ( cd_genero )
+        REFERENCES t_clg_genero ( cd_genero );
+
+ALTER TABLE t_clg_prontuario
+    ADD CONSTRAINT fk_clg_pront_cons FOREIGN KEY ( cd_consulta )
+        REFERENCES t_clg_consulta ( cd_consulta );
+
+CREATE OR REPLACE TRIGGER arc_pf_pj_t_clg_espe_pj BEFORE
+    INSERT OR UPDATE OF cd_especialista ON t_clg_espe_pj
+    FOR EACH ROW
+DECLARE
+    d CHAR(2);
+BEGIN
+    SELECT
+        a.ds_tipo_espe
+    INTO d
+    FROM
+        t_clg_especialista a
+    WHERE
+        a.cd_especialista = :new.cd_especialista;
+
+    IF ( d IS NULL OR d <> 'PJ' ) THEN
+        raise_application_error(-20223,
+                               'FK FK_CLG_ESPE_PJ_ESPE in Table T_CLG_ESPE_PJ violates Arc constraint on Table T_CLG_ESPECIALISTA - discriminator column ds_tipo_espe doesn''t have value ''PJ''');
+    END IF;
+
+EXCEPTION
+    WHEN no_data_found THEN
+        NULL;
+    WHEN OTHERS THEN
+        RAISE;
+END;
+/
+
+CREATE OR REPLACE TRIGGER arc_pf_pj_t_clg_espe_pf BEFORE
+    INSERT OR UPDATE OF cd_especialista ON t_clg_espe_pf
+    FOR EACH ROW
+DECLARE
+    d CHAR(2);
+BEGIN
+    SELECT
+        a.ds_tipo_espe
+    INTO d
+    FROM
+        t_clg_especialista a
+    WHERE
+        a.cd_especialista = :new.cd_especialista;
+
+    IF ( d IS NULL OR d <> 'PF' ) THEN
+        raise_application_error(-20223,
+                               'FK FK_CLG_ESPE_PF_ESPE in Table T_CLG_ESPE_PF violates Arc constraint on Table T_CLG_ESPECIALISTA - discriminator column ds_tipo_espe doesn''t have value ''PF''');
+    END IF;
+
+EXCEPTION
+    WHEN no_data_found THEN
+        NULL;
+    WHEN OTHERS THEN
+        RAISE;
+END;
+/
